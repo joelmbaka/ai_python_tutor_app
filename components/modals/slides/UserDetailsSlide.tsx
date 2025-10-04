@@ -5,7 +5,6 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -25,37 +24,19 @@ const AGE_RANGES = [
   { label: '17+ years', value: 18, description: 'Advanced Programming' },
 ];
 
-const EXPERIENCE_LEVELS = [
-  { 
-    id: 'beginner', 
-    label: 'Complete Beginner', 
-    description: 'Never coded before',
-    emoji: '🌱'
-  },
-  { 
-    id: 'some', 
-    label: 'Some Experience', 
-    description: 'Tried coding a bit',
-    emoji: '🌿'
-  },
-  { 
-    id: 'advanced', 
-    label: 'Advanced', 
-    description: 'Comfortable with coding',
-    emoji: '🌳'
-  },
-];
+// Infer programming experience level from age so we don't need to ask explicitly
+const inferExperienceFromAge = (age: number): UserData['experience'] => {
+  if (age <= 10) return 'beginner';
+  if (age <= 13) return 'some';
+  return 'advanced';
+};
 
 export const UserDetailsSlide: React.FC<UserDetailsSlideProps> = ({
   onUserDataUpdate,
   userData,
   canProceed,
 }) => {
-  const [name, setName] = useState(userData.name || '');
   const [selectedAge, setSelectedAge] = useState<number | null>(userData.age || null);
-  const [selectedExperience, setSelectedExperience] = useState<string | null>(
-    userData.experience || null
-  );
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -68,12 +49,15 @@ export const UserDetailsSlide: React.FC<UserDetailsSlideProps> = ({
   }, []);
 
   React.useEffect(() => {
-    onUserDataUpdate({
-      name: name.trim(),
-      age: selectedAge || undefined,
-      experience: selectedExperience as any,
-    });
-  }, [name, selectedAge, selectedExperience]);
+    if (selectedAge) {
+      onUserDataUpdate({
+        age: selectedAge,
+        experience: inferExperienceFromAge(selectedAge),
+      });
+    } else {
+      onUserDataUpdate({ age: undefined });
+    }
+  }, [selectedAge]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -85,27 +69,8 @@ export const UserDetailsSlide: React.FC<UserDetailsSlideProps> = ({
             <Text style={styles.subtitle}>
               This helps us personalize your learning journey
             </Text>
-          </View>
-
-          {/* Name Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>What should we call you?</Text>
-            <TextInput
-              style={[
-                styles.nameInput,
-                name.trim() && styles.validInput,
-              ]}
-              placeholder="Enter your name..."
-              placeholderTextColor="rgba(255, 255, 255, 0.5)"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              returnKeyType="done"
-            />
-            {name.trim() && (
-              <Text style={styles.validationText}>
-                ✅ Great! Nice to meet you, {name}!
-              </Text>
+            {!!userData.name && (
+              <Text style={styles.greetingText}>Nice to meet you, {userData.name}! 🎉</Text>
             )}
           </View>
 
@@ -151,41 +116,7 @@ export const UserDetailsSlide: React.FC<UserDetailsSlideProps> = ({
             </View>
           </View>
 
-          {/* Experience Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Programming Experience</Text>
-            <Text style={styles.sectionSubtitle}>
-              How much coding have you done before?
-            </Text>
-            <View style={styles.experienceContainer}>
-              {EXPERIENCE_LEVELS.map((level) => (
-                <TouchableOpacity
-                  key={level.id}
-                  style={[
-                    styles.experienceButton,
-                    selectedExperience === level.id && styles.selectedExperience,
-                  ]}
-                  onPress={() => setSelectedExperience(level.id)}
-                >
-                  <View style={styles.experienceContent}>
-                    <Text style={styles.experienceEmoji}>{level.emoji}</Text>
-                    <Text style={[
-                      styles.experienceLabel,
-                      selectedExperience === level.id && styles.selectedExperienceLabel,
-                    ]}>
-                      {level.label}
-                    </Text>
-                    <Text style={[
-                      styles.experienceDescription,
-                      selectedExperience === level.id && styles.selectedExperienceDescription,
-                    ]}>
-                      {level.description}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+          {/* Experience section removed - experience inferred from selected age */}
 
           {/* Progress Indicator */}
           {canProceed && (
@@ -342,6 +273,12 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
     color: '#4A90E2',
+    fontWeight: '600',
+  },
+  greetingText: {
+    marginTop: 8,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
   },
 });

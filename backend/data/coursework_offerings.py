@@ -4,7 +4,7 @@ These create flexible pathways through the lesson blueprints.
 """
 
 from typing import List
-from models.coursework_models import CourseworkBlueprint, CourseworkType
+from models.coursework_models import CourseworkBlueprint, CourseworkCategory
 
 # ===== AGE GROUP 8-10 COURSEWORK OPTIONS =====
 
@@ -14,7 +14,7 @@ COURSEWORK_8_10: List[CourseworkBlueprint] = [
         id="full_python_kids_8_10",
         title="Complete Python Adventure for Young Coders",
         description="The full 20-lesson journey from complete beginner to confident young programmer. Perfect for kids who want to become real Python coders!",
-        type=CourseworkType.FULL_CURRICULUM,
+        category=CourseworkCategory.FULL_CURRICULUM,
         age_group="8-10",
         lesson_sequence=[
             "computational_thinking_intro_8_10", "variables_intro_8_10", "print_fun_8_10", 
@@ -57,7 +57,7 @@ COURSEWORK_8_10: List[CourseworkBlueprint] = [
         id="python_quickstart_8_10",
         title="Python Quick Start for Kids",
         description="Essential Python basics in just 6 lessons! Perfect for kids who want to try programming and see if they like it.",
-        type=CourseworkType.QUICK_START,
+        category=CourseworkCategory.QUICK_START,
         age_group="8-10",
         lesson_sequence=[
             "computational_thinking_intro_8_10", "variables_intro_8_10", "print_fun_8_10",
@@ -90,7 +90,7 @@ COURSEWORK_8_10: List[CourseworkBlueprint] = [
         id="summer_coding_camp_8_10",
         title="Summer Coding Camp Adventure",
         description="2-week intensive summer program covering games, art, and creativity. Perfect for summer break!",
-        type=CourseworkType.SUMMER_INTENSIVE,
+        category=CourseworkCategory.SUMMER_INTENSIVE,
         age_group="8-10",
         lesson_sequence=[
             "computational_thinking_intro_8_10", "variables_intro_8_10", "print_fun_8_10",
@@ -128,7 +128,7 @@ COURSEWORK_8_10: List[CourseworkBlueprint] = [
         id="creative_coding_8_10",
         title="Creative Coding: Art, Music & Stories",
         description="Focus on the creative side of programming! Perfect for artistic kids who love making things.",
-        type=CourseworkType.SPECIALTY_TRACK,
+        category=CourseworkCategory.SPECIALTY_TRACK,
         age_group="8-10",
         lesson_sequence=[
             "variables_intro_8_10", "print_fun_8_10", "emoji_patterns_8_10",
@@ -168,7 +168,7 @@ COURSEWORK_11_13: List[CourseworkBlueprint] = [
         id="full_python_teens_11_13",
         title="Complete Python Programming Mastery",
         description="Comprehensive 25-lesson journey from basics to advanced programming, including games, web development, and AI basics.",
-        type=CourseworkType.FULL_CURRICULUM,
+        category=CourseworkCategory.FULL_CURRICULUM,
         age_group="11-13",
         lesson_sequence=[
             "python_basics_11_13", "conditionals_intro_11_13", "loops_basics_11_13",
@@ -212,7 +212,7 @@ COURSEWORK_11_13: List[CourseworkBlueprint] = [
         id="game_dev_track_11_13",
         title="Python Game Development Bootcamp",
         description="Focus on creating awesome games with Python! Learn programming through game development.",
-        type=CourseworkType.SPECIALTY_TRACK,
+        category=CourseworkCategory.SPECIALTY_TRACK,
         age_group="11-13",
         lesson_sequence=[
             "python_basics_11_13", "conditionals_intro_11_13", "loops_basics_11_13",
@@ -247,7 +247,7 @@ COURSEWORK_11_13: List[CourseworkBlueprint] = [
         id="web_dev_track_11_13", 
         title="Web Development with Python",
         description="Learn to build websites and web applications! Perfect for kids interested in web development.",
-        type=CourseworkType.SPECIALTY_TRACK,
+        category=CourseworkCategory.SPECIALTY_TRACK,
         age_group="11-13",
         lesson_sequence=[
             "python_basics_11_13", "functions_deep_dive_11_13", "dictionaries_intro_11_13",
@@ -286,7 +286,7 @@ COURSEWORK_14_16: List[CourseworkBlueprint] = [
         id="computer_science_diploma_14_16",
         title="Computer Science Mastery Diploma",
         description="Complete 30-lesson computer science education covering algorithms, web development, AI, and career preparation. College and industry ready!",
-        type=CourseworkType.FULL_CURRICULUM,
+        category=CourseworkCategory.FULL_CURRICULUM,
         age_group="14-16",
         lesson_sequence=[
             "data_structures_intro_14_16", "file_handling_14_16", "oop_basics_14_16",
@@ -335,7 +335,7 @@ COURSEWORK_14_16: List[CourseworkBlueprint] = [
         id="ai_ml_specialization_14_16",
         title="Artificial Intelligence & Machine Learning Track",
         description="Specialized track focusing on AI, machine learning, and data science. Perfect for future AI engineers!",
-        type=CourseworkType.SPECIALTY_TRACK,
+        category=CourseworkCategory.SPECIALTY_TRACK,
         age_group="14-16",
         lesson_sequence=[
             "data_structures_intro_14_16", "algorithms_analysis_14_16", "database_integration_14_16",
@@ -374,7 +374,7 @@ COURSEWORK_14_16: List[CourseworkBlueprint] = [
         id="software_engineering_14_16",
         title="Software Engineering Professional Track", 
         description="Industry-focused track covering professional software development, from algorithms to deployment.",
-        type=CourseworkType.SPECIALTY_TRACK,
+        category=CourseworkCategory.SPECIALTY_TRACK,
         age_group="14-16",
         lesson_sequence=[
             "algorithms_analysis_14_16", "advanced_oop_14_16", "data_structures_advanced_14_16",
@@ -430,7 +430,29 @@ def get_coursework_by_id(coursework_id: str) -> CourseworkBlueprint:
                 return coursework
     raise ValueError(f"Coursework with ID '{coursework_id}' not found")
 
-def get_coursework_by_type(age_group: str, coursework_type: CourseworkType) -> List[CourseworkBlueprint]:
-    """Get coursework options by type for an age group"""
+def get_coursework_by_category(age_group: str, coursework_category: CourseworkCategory) -> List[CourseworkBlueprint]:
+    """Get coursework options by category for an age group"""
     coursework_list = get_coursework_for_age(age_group)
-    return [cw for cw in coursework_list if cw.type == coursework_type]
+    return [cw for cw in coursework_list if cw.category == coursework_category]
+
+def load_coursework_content(coursework_id: str) -> CourseworkBlueprint:
+    """Load coursework content by ID (alias for get_coursework_by_id)"""
+    return get_coursework_by_id(coursework_id)
+
+def get_all_coursework_summaries() -> List[dict]:
+    """Get summary information for all available coursework"""
+    summaries = []
+    for age_group, coursework_list in ALL_COURSEWORK.items():
+        for coursework in coursework_list:
+            summaries.append({
+                "id": coursework.id,
+                "title": coursework.title,
+                "description": coursework.description,
+                "age_group": coursework.age_group,
+                "category": coursework.category.value,
+                "total_lessons": coursework.total_lessons,
+                "estimated_hours": coursework.estimated_hours,
+                "skill_level": f"{coursework.skill_level_start} → {coursework.skill_level_end}",
+                "tags": coursework.tags
+            })
+    return summaries

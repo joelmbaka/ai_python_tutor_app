@@ -5,6 +5,7 @@ import { persistReducer, persistStore } from 'redux-persist';
 import progressSlice from './slices/progressSlice';
 import settingsSlice from './slices/settingsSlice';
 import userSlice from './slices/userSlice';
+import coinsSlice from './slices/coinsSlice';
 
 const persistConfig = {
   key: 'root',
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
   user: userSlice,
   progress: progressSlice,
   settings: settingsSlice,
+  coins: coinsSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

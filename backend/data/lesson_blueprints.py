@@ -11,7 +11,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="computational_thinking_intro_8_10",
         title="Thinking Like a Computer",
-        type="tutorial",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=[],
@@ -19,7 +19,6 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
         complexity_level=1,
         position_in_curriculum=1,
         personalization_hooks=PersonalizationHooks(
-            use_learning_style=True,
             include_encouragement=True,
             use_interests=True
         ),
@@ -36,7 +35,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="variables_intro_8_10",
         title="Magic Boxes (Variables)",
-        type="challenge",
+        
         age_group="8-10", 
         skill_level="beginner",
         prerequisites=["computational_thinking_intro_8_10"],
@@ -55,7 +54,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="print_fun_8_10",
         title="Making Python Talk",
-        type="challenge",
+        
         age_group="8-10",
         skill_level="beginner", 
         prerequisites=["variables_intro_8_10"],
@@ -74,7 +73,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="emoji_patterns_8_10",
         title="Create Art with Code",
-        type="project",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=["print_fun_8_10"],
@@ -94,7 +93,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="numbers_math_8_10",
         title="Number Magic: Math with Python",
-        type="challenge",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=["emoji_patterns_8_10"],
@@ -114,7 +113,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="user_input_8_10",
         title="Talking to Your Computer",
-        type="tutorial",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=["numbers_math_8_10"],
@@ -135,7 +134,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="making_choices_8_10",
         title="Teaching Your Computer to Choose",
-        type="challenge",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=["user_input_8_10"],
@@ -155,7 +154,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="comparing_things_8_10",
         title="Which is Bigger? Comparing with Code",
-        type="tutorial",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=["making_choices_8_10"],
@@ -175,7 +174,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="collections_intro_8_10",
         title="Treasure Chests: Storing Many Things",
-        type="challenge",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=["comparing_things_8_10"],
@@ -195,7 +194,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="turtle_graphics_8_10",
         title="Drawing Pictures with Code",
-        type="project",
+        
         age_group="8-10",
         skill_level="beginner",
         prerequisites=["collections_intro_8_10"],
@@ -216,7 +215,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="guess_the_number_8_10",
         title="Build Your First Game",
-        type="project",
+        
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["turtle_graphics_8_10"],
@@ -231,13 +230,12 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
             interactive_elements=True,
             include_emojis=True
         ),
-        tags=["games", "random", "loops", "project"]
+        tags=["games", "random", "loops", "challenge"]
     ),
     
     LessonBlueprint(
         id="milestone_assessment_1_8_10",
         title="Show What You Know: Mid-Course Challenge",
-        type="assessment",
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["guess_the_number_8_10"],
@@ -250,14 +248,14 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
             include_emojis=True,
             interactive_elements=True
         ),
-        tags=["assessment", "review", "milestone"]
+        tags=["challenge", "review", "checkpoint"]
     ),
     
     # Creative Phase (Lessons 13-18)
     LessonBlueprint(
         id="music_maker_8_10",
         title="Making Music with Code",
-        type="project",
+        
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["milestone_assessment_1_8_10"],
@@ -272,13 +270,13 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
             interactive_elements=True,
             include_emojis=True
         ),
-        tags=["music", "sound", "creative", "project"]
+        tags=["music", "sound", "creative", "challenge"]
     ),
     
     LessonBlueprint(
         id="animation_basics_8_10",
         title="Bringing Pictures to Life",
-        type="tutorial",
+        
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["music_maker_8_10"],
@@ -298,7 +296,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="pet_simulator_8_10",
         title="Create Your Virtual Pet",
-        type="project",
+        
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["animation_basics_8_10"],
@@ -313,13 +311,12 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
             interactive_elements=True,
             include_emojis=True
         ),
-        tags=["simulation", "pets", "functions", "project"]
+        tags=["simulation", "pets", "functions", "challenge"]
     ),
     
     LessonBlueprint(
         id="story_generator_8_10",
         title="Magical Story Creator",
-        type="challenge",
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["pet_simulator_8_10"],
@@ -338,8 +335,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     
     LessonBlueprint(
         id="kids_calculator_8_10",
-        title="Build a Super Calculator",
-        type="project",
+        title="Build a Super Calculator",      
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["story_generator_8_10"],
@@ -360,7 +356,6 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="debugging_detective_8_10",
         title="Become a Code Detective",
-        type="tutorial",
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["kids_calculator_8_10"],
@@ -380,7 +375,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="showcase_portfolio_8_10",
         title="Your Amazing Python Portfolio",
-        type="project",
+        
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["debugging_detective_8_10"],
@@ -401,7 +396,7 @@ BLUEPRINTS_8_10: List[LessonBlueprint] = [
     LessonBlueprint(
         id="graduation_celebration_8_10",
         title="Python Programming Graduate!",
-        type="assessment",
+        
         age_group="8-10",
         skill_level="intermediate",
         prerequisites=["showcase_portfolio_8_10"],
@@ -423,7 +418,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="python_basics_11_13",
         title="Python Programming Fundamentals",
-        type="tutorial",
+        
         age_group="11-13",
         skill_level="beginner",
         prerequisites=[],
@@ -442,7 +437,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="conditionals_intro_11_13", 
         title="Making Decisions with If Statements",
-        type="challenge",
+        
         age_group="11-13",
         skill_level="beginner",
         prerequisites=["python_basics_11_13"],
@@ -461,7 +456,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="loops_basics_11_13",
         title="Repeating Actions with Loops", 
-        type="tutorial",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["conditionals_intro_11_13"],
@@ -480,7 +475,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="calculator_project_11_13",
         title="Build Your First Calculator",
-        type="project", 
+         
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["loops_basics_11_13"],
@@ -494,13 +489,13 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
             min_examples=2,
             interactive_elements=True
         ),
-        tags=["project", "calculator", "functions", "real_world"]
+        tags=["challenge", "calculator", "functions", "real_world"]
     ),
     
     LessonBlueprint(
         id="functions_deep_dive_11_13",
         title="Creating Your Own Python Tools",
-        type="tutorial",
+        
         age_group="11-13", 
         skill_level="intermediate",
         prerequisites=["calculator_project_11_13"],
@@ -520,7 +515,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="string_manipulation_11_13",
         title="Master Text Processing",
-        type="tutorial",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["functions_deep_dive_11_13"],
@@ -539,7 +534,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="lists_advanced_11_13",
         title="Lists: Your Data Powerhouse",
-        type="challenge",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["string_manipulation_11_13"],
@@ -558,7 +553,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="dictionaries_intro_11_13",
         title="Dictionaries: Key-Value Magic",
-        type="tutorial",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["lists_advanced_11_13"],
@@ -577,7 +572,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="error_handling_11_13",
         title="Handling Mistakes Like a Pro",
-        type="challenge",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["dictionaries_intro_11_13"],
@@ -596,7 +591,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="file_operations_11_13",
         title="Working with Files and Data",
-        type="tutorial",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["error_handling_11_13"],
@@ -617,7 +612,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="pygame_intro_11_13",
         title="Game Development Basics",
-        type="project",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["file_operations_11_13"],
@@ -637,7 +632,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="pong_game_11_13",
         title="Build Classic Pong Game",
-        type="project",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["pygame_intro_11_13"],
@@ -657,7 +652,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="snake_game_11_13",
         title="Create Snake Game",
-        type="project",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["pong_game_11_13"],
@@ -677,7 +672,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="quiz_app_11_13",
         title="Interactive Quiz Application",
-        type="project",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["snake_game_11_13"],
@@ -696,8 +691,8 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     
     LessonBlueprint(
         id="milestone_assessment_2_11_13",
-        title="Advanced Skills Assessment",
-        type="assessment",
+        title="Advanced Skills Challenge",
+        
         age_group="11-13",
         skill_level="intermediate",
         prerequisites=["quiz_app_11_13"],
@@ -709,14 +704,14 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
             language_complexity="moderate",
             interactive_elements=True
         ),
-        tags=["assessment", "milestone", "review", "skills"]
+        tags=["challenge", "checkpoint", "review", "skills"]
     ),
     
     # Web & API Phase (Lessons 16-20)
     LessonBlueprint(
         id="web_scraping_basics_11_13",
         title="Gathering Data from the Web",
-        type="tutorial",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["milestone_assessment_2_11_13"],
@@ -735,7 +730,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="api_basics_11_13",
         title="Working with APIs and JSON",
-        type="challenge",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["web_scraping_basics_11_13"],
@@ -754,7 +749,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="data_visualization_11_13",
         title="Creating Charts and Graphs",
-        type="project",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["api_basics_11_13"],
@@ -774,7 +769,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="personal_website_11_13",
         title="Build Your Personal Website",
-        type="project",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["data_visualization_11_13"],
@@ -793,8 +788,8 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     
     LessonBlueprint(
         id="capstone_project_11_13",
-        title="Design Your Own Python Project",
-        type="project",
+        title="Design Your Own Python App",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["personal_website_11_13"],
@@ -815,7 +810,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="oop_introduction_11_13",
         title="Object-Oriented Programming Basics",
-        type="tutorial",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["capstone_project_11_13"],
@@ -834,7 +829,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="ai_chatbot_11_13",
         title="Build an AI Chatbot",
-        type="project",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["oop_introduction_11_13"],
@@ -854,7 +849,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="automation_scripts_11_13",
         title="Automate Boring Tasks",
-        type="challenge",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["ai_chatbot_11_13"],
@@ -873,7 +868,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="portfolio_showcase_11_13",
         title="Professional Portfolio Development",
-        type="project",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["automation_scripts_11_13"],
@@ -893,7 +888,7 @@ BLUEPRINTS_11_13: List[LessonBlueprint] = [
     LessonBlueprint(
         id="python_mastery_11_13",
         title="Python Programming Mastery Certificate",
-        type="assessment",
+        
         age_group="11-13",
         skill_level="advanced",
         prerequisites=["portfolio_showcase_11_13"],
@@ -914,7 +909,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="data_structures_intro_14_16",
         title="Organizing Data with Lists and Dictionaries",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="intermediate",
         prerequisites=[],
@@ -934,7 +929,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="file_handling_14_16",
         title="Reading and Writing Files",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="intermediate", 
         prerequisites=["data_structures_intro_14_16"],
@@ -953,7 +948,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="oop_basics_14_16",
         title="Object-Oriented Programming Concepts",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["file_handling_14_16"],
@@ -973,7 +968,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="web_scraper_project_14_16",
         title="Build a Web Data Collector",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["oop_basics_14_16"],
@@ -993,8 +988,8 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     
     LessonBlueprint(
         id="assessment_comprehensive_14_16",
-        title="Python Programming Assessment",
-        type="assessment",
+        title="Python Programming Skills Challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["web_scraper_project_14_16"],
@@ -1007,14 +1002,14 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
             include_emojis=False,
             interactive_elements=True
         ),
-        tags=["assessment", "comprehensive", "evaluation", "skills_check"]
+        tags=["challenge", "comprehensive", "evaluation", "skills_check"]
     ),
     
     # Advanced Programming Concepts (Lessons 6-10)
     LessonBlueprint(
         id="algorithms_analysis_14_16",
         title="Algorithms and Computational Complexity",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["assessment_comprehensive_14_16"],
@@ -1033,7 +1028,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="advanced_oop_14_16",
         title="Advanced Object-Oriented Design",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["algorithms_analysis_14_16"],
@@ -1053,7 +1048,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="data_structures_advanced_14_16",
         title="Advanced Data Structures & Trees",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["advanced_oop_14_16"],
@@ -1073,7 +1068,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="database_integration_14_16",
         title="Database Design and SQL Integration",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["data_structures_advanced_14_16"],
@@ -1094,7 +1089,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="testing_debugging_14_16",
         title="Professional Testing and Debugging",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["database_integration_14_16"],
@@ -1115,7 +1110,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="flask_advanced_14_16",
         title="Full-Stack Web Application",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["testing_debugging_14_16"],
@@ -1136,7 +1131,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="rest_api_development_14_16",
         title="Building REST APIs",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["flask_advanced_14_16"],
@@ -1156,7 +1151,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="microservices_intro_14_16",
         title="Microservices Architecture Basics",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["rest_api_development_14_16"],
@@ -1176,7 +1171,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="cloud_deployment_14_16",
         title="Cloud Deployment and DevOps",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["microservices_intro_14_16"],
@@ -1196,8 +1191,8 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     
     LessonBlueprint(
         id="milestone_assessment_3_14_16",
-        title="Software Engineering Assessment",
-        type="assessment",
+        title="Software Engineering Challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["cloud_deployment_14_16"],
@@ -1210,14 +1205,14 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
             interactive_elements=True,
             include_emojis=False
         ),
-        tags=["assessment", "software_engineering", "system_design"]
+        tags=["challenge", "software_engineering", "system_design"]
     ),
     
     # Data Science & AI (Lessons 16-20)
     LessonBlueprint(
         id="data_science_fundamentals_14_16",
         title="Data Science with Python",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["milestone_assessment_3_14_16"],
@@ -1237,7 +1232,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="machine_learning_intro_14_16",
         title="Introduction to Machine Learning",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["data_science_fundamentals_14_16"],
@@ -1258,7 +1253,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="deep_learning_basics_14_16",
         title="Neural Networks and Deep Learning",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["machine_learning_intro_14_16"],
@@ -1278,7 +1273,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="computer_vision_14_16",
         title="Computer Vision Applications",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["deep_learning_basics_14_16"],
@@ -1298,8 +1293,8 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     
     LessonBlueprint(
         id="nlp_project_14_16",
-        title="Natural Language Processing Project",
-        type="project",
+        title="Natural Language Processing Challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["computer_vision_14_16"],
@@ -1321,7 +1316,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="cybersecurity_basics_14_16",
         title="Cybersecurity and Ethical Hacking",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["nlp_project_14_16"],
@@ -1341,7 +1336,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="blockchain_crypto_14_16",
         title="Blockchain and Cryptocurrency",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["cybersecurity_basics_14_16"],
@@ -1361,7 +1356,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="mobile_app_backend_14_16",
         title="Mobile App Backend Development",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["blockchain_crypto_14_16"],
@@ -1382,7 +1377,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="performance_optimization_14_16",
         title="High-Performance Python Applications",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["mobile_app_backend_14_16"],
@@ -1402,7 +1397,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="open_source_contribution_14_16",
         title="Contributing to Open Source",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["performance_optimization_14_16"],
@@ -1422,7 +1417,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="startup_mvp_14_16",
         title="Build a Startup MVP",
-        type="project",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["open_source_contribution_14_16"],
@@ -1443,7 +1438,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="technical_interview_prep_14_16",
         title="Technical Interview Preparation",
-        type="challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["startup_mvp_14_16"],
@@ -1463,7 +1458,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="industry_mentorship_14_16",
         title="Industry Mentorship and Networking",
-        type="tutorial",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["technical_interview_prep_14_16"],
@@ -1482,8 +1477,8 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     
     LessonBlueprint(
         id="final_capstone_14_16",
-        title="Senior Capstone Project",
-        type="project",
+        title="Senior Capstone Challenge",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["industry_mentorship_14_16"],
@@ -1504,7 +1499,7 @@ BLUEPRINTS_14_16: List[LessonBlueprint] = [
     LessonBlueprint(
         id="computer_science_mastery_14_16",
         title="Computer Science Mastery Diploma",
-        type="assessment",
+        
         age_group="14-16",
         skill_level="advanced",
         prerequisites=["final_capstone_14_16"],

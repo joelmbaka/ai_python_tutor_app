@@ -18,6 +18,7 @@ interface LessonCompletionModalProps {
   lessonTitle: string;
   nextLessonTitle?: string;
   hasNextLesson: boolean;
+  autoAdvanceDefault?: boolean;
 }
 
 export const LessonCompletionModal: React.FC<LessonCompletionModalProps> = ({
@@ -27,12 +28,13 @@ export const LessonCompletionModal: React.FC<LessonCompletionModalProps> = ({
   lessonTitle,
   nextLessonTitle,
   hasNextLesson,
+  autoAdvanceDefault,
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   
   const [countdown, setCountdown] = useState(10);
-  const [autoAdvance, setAutoAdvance] = useState(true);
+  const [autoAdvance, setAutoAdvance] = useState<boolean>(autoAdvanceDefault ?? true);
   
   const scaleAnim = React.useRef(new Animated.Value(0)).current;
   const celebrationAnim = React.useRef(new Animated.Value(0)).current;
@@ -57,6 +59,9 @@ export const LessonCompletionModal: React.FC<LessonCompletionModalProps> = ({
         ]),
       ]).start();
 
+      // Initialize auto-advance from provided default each time it opens
+      setAutoAdvance(autoAdvanceDefault ?? true);
+
       // Start countdown if has next lesson
       if (hasNextLesson && autoAdvance) {
         const timer = setInterval(() => {
@@ -77,9 +82,9 @@ export const LessonCompletionModal: React.FC<LessonCompletionModalProps> = ({
       scaleAnim.setValue(0);
       celebrationAnim.setValue(0);
       setCountdown(10);
-      setAutoAdvance(true);
+      setAutoAdvance(autoAdvanceDefault ?? true);
     }
-  }, [visible, hasNextLesson, autoAdvance]);
+  }, [visible, hasNextLesson, autoAdvance, autoAdvanceDefault]);
 
   const handleContinue = () => {
     setAutoAdvance(false);

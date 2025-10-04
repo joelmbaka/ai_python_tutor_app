@@ -8,7 +8,7 @@ A FastAPI backend service that generates personalized Python programming lessons
 - **Age-Appropriate Content**: Adapts language complexity and concepts for ages 8-16
 - **Structured Curriculum**: Progressive lesson blueprints covering Python fundamentals to advanced topics
 - **Multiple Learning Styles**: Supports visual, text-based, and mixed learning approaches
-- **Interactive Content**: Generates challenges, tutorials, projects, and assessments
+- **Interactive Content**: Challenge-based lessons with practice exercises
 - **CrewAI Integration**: Uses multiple AI agents for content generation and adaptation
 
 ## 🏗️ Architecture
@@ -62,7 +62,7 @@ backend/
    python main.py
    ```
    
-   The API will be available at `http://localhost:8000`
+   The API will be available at `http://localhost:8083`
 
 ## 🔑 API Keys Setup
 
@@ -91,7 +91,7 @@ You'll need an API key from one of these providers:
 ### Example Request
 
 ```bash
-curl -X POST "http://localhost:8000/generate-lesson" \
+curl -X POST "http://localhost:8083/generate-lesson" \
   -H "Content-Type: application/json" \
   -d '{
     "blueprint_id": "variables_intro_8_10",
@@ -116,12 +116,10 @@ curl -X POST "http://localhost:8000/generate-lesson" \
 - **11-13 years**: Mixed visual + text programming 
 - **14-16 years**: Full text-based programming
 
-### Lesson Types
+### Lesson Format (Challenge-Only)
 
-- **Challenge**: Interactive coding exercises
-- **Tutorial**: Step-by-step guided learning
-- **Project**: Real-world application building
-- **Assessment**: Knowledge evaluation and quizzes
+- **Challenge**: Interactive coding exercise with starter code, hints, solution, and explanation
+- **Optional Exercise**: Open-ended practice prompt for additional exploration
 
 ### Sample Progression (Ages 8-10)
 
@@ -148,16 +146,15 @@ python crews/lesson_generator.py
 
 ## 📝 API Documentation
 
-Visit `http://localhost:8000/docs` for interactive API documentation.
+Visit `http://localhost:8083/docs` for interactive API documentation.
 
 ## 🔧 Development
 
-### Adding New Lesson Types
+### Extending Challenge Content
 
-1. Create new content model in `models/lesson_models.py`
-2. Add to `LessonContent` union type
-3. Update crew prompts in `crews/lesson_generator.py`
-4. Add mock data generation in `main.py`
+- Modify `SimpleChallenge` or `Exercise` in `models/lesson_models.py` to adjust structure
+- Tweak crew prompts in `crews/lesson_generator.py` for different challenge complexity
+- Update mock fallback in `main.py#create_mock_lesson_content` if schema changes
 
 ### Adding New Age Groups
 
@@ -178,7 +175,7 @@ COPY . .
 RUN pip install uv
 RUN uv sync --frozen
 
-EXPOSE 8000
+EXPOSE 8083
 CMD ["python", "main.py"]
 ```
 
@@ -187,7 +184,7 @@ CMD ["python", "main.py"]
 ```bash
 DEBUG=false
 HOST=0.0.0.0
-PORT=8000
+PORT=8083
 SECRET_KEY=your_production_secret_key
 NVIDIA_NIM_API_KEY=your_production_api_key
 ```

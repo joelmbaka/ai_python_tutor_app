@@ -1,6 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+
+import Reanimated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence, withDelay, Easing } from 'react-native-reanimated';
 
 interface WelcomeSlideProps {
   onNext: () => void;
@@ -10,6 +12,30 @@ interface WelcomeSlideProps {
 export const WelcomeSlide: React.FC<WelcomeSlideProps> = ({ canProceed }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
+  const { width } = useWindowDimensions();
+
+  // Reanimated shared values for feature icons
+  const starY = useSharedValue(0);
+  const targetScale = useSharedValue(1);
+  const rocketRotate = useSharedValue(0);
+  const snakeX = useSharedValue(0);
+
+  // Animated styles
+  const starAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: starY.value }],
+  }));
+
+  const targetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: targetScale.value }],
+  }));
+
+  const rocketAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rocketRotate.value}deg` }],
+  }));
+
+  const snakeAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: snakeX.value }],
+  }));
 
   React.useEffect(() => {
     Animated.parallel([
@@ -24,6 +50,64 @@ export const WelcomeSlide: React.FC<WelcomeSlideProps> = ({ canProceed }) => {
         useNativeDriver: true,
       }),
     ]).start();
+  }, []);
+
+  // Start snake animation across full width
+  React.useEffect(() => {
+    const emojiOffset = 60; // approximate width of the 60pt emoji
+    const distance = width + emojiOffset * 2; // travel from off-right to off-left
+    const pxPerSecond = 100; // speed
+    const duration = Math.max(3000, Math.round((distance / pxPerSecond) * 1000));
+
+    snakeX.value = width + emojiOffset;
+    snakeX.value = withRepeat(
+      withSequence(
+        withTiming(-emojiOffset, { duration, easing: Easing.linear }),
+        withTiming(width + emojiOffset, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+  }, [width]);
+
+  // Start icon animations (looping with slight delays)
+  React.useEffect(() => {
+    // ✨ Float
+    starY.value = withDelay(
+      0,
+      withRepeat(
+        withSequence(
+          withTiming(-6, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+          withTiming(0, { duration: 900, easing: Easing.inOut(Easing.quad) })
+        ),
+        -1,
+        false
+      )
+    );
+
+    // 🎯 Pulse
+    targetScale.value = withDelay(
+      200,
+      withRepeat(
+        withTiming(1.08, { duration: 800, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true
+      )
+    );
+
+    // 🚀 Wiggle
+    rocketRotate.value = withDelay(
+      400,
+      withRepeat(
+        withSequence(
+          withTiming(-6, { duration: 300, easing: Easing.inOut(Easing.quad) }),
+          withTiming(6, { duration: 300, easing: Easing.inOut(Easing.quad) }),
+          withTiming(0, { duration: 400, easing: Easing.out(Easing.quad) })
+        ),
+        -1,
+        false
+      )
+    );
   }, []);
 
   return (
@@ -43,7 +127,9 @@ export const WelcomeSlide: React.FC<WelcomeSlideProps> = ({ canProceed }) => {
         <View style={styles.content}>
           {/* Logo/Icon */}
           <View style={styles.logoContainer}>
-            <Text style={styles.logoEmoji}>🐍</Text>
+            <View style={styles.snakeTrack}>
+              <Reanimated.Text style={[styles.logoEmoji, snakeAnimatedStyle]}>🐍</Reanimated.Text>
+            </View>
             <Text style={styles.logoText}>PythonKids</Text>
           </View>
 
@@ -63,17 +149,17 @@ export const WelcomeSlide: React.FC<WelcomeSlideProps> = ({ canProceed }) => {
           {/* Features Preview */}
           <View style={styles.featuresContainer}>
             <View style={styles.feature}>
-              <Text style={styles.featureEmoji}>✨</Text>
+              <Reanimated.Text style={[styles.featureEmoji, starAnimatedStyle]}>✨</Reanimated.Text>
               <Text style={styles.featureText}>Interactive Challenges</Text>
             </View>
             
             <View style={styles.feature}>
-              <Text style={styles.featureEmoji}>🎯</Text>
+              <Reanimated.Text style={[styles.featureEmoji, targetAnimatedStyle]}>🎯</Reanimated.Text>
               <Text style={styles.featureText}>Instant Results</Text>
             </View>
             
             <View style={styles.feature}>
-              <Text style={styles.featureEmoji}>🚀</Text>
+              <Reanimated.Text style={[styles.featureEmoji, rocketAnimatedStyle]}>🚀</Reanimated.Text>
               <Text style={styles.featureText}>Real Python Code</Text>
             </View>
           </View>
@@ -105,10 +191,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 40,
+    width: '100%',
   },
   logoEmoji: {
     fontSize: 60,
-    marginBottom: 10,
+    marginBottom: 0,
   },
   logoText: {
     fontSize: 28,
@@ -151,6 +238,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     width: '100%',
     marginBottom: 30,
+  },
+  snakeTrack: {
+    width: '100%',
+    height: 60, // match emoji font size
+    overflow: 'hidden',
+    marginBottom: 10,
+    // Extend into gradient padding so the snake travels edge-to-edge
+    marginHorizontal: -30,
   },
   feature: {
     alignItems: 'center',

@@ -1,0 +1,69 @@
+# VCS and editor folders
+.git/
+.github/
+.husky/
+.vscode/
+.idea/
+
+# Dependencies and caches (EAS installs deps in the cloud)
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.pnp.*
+
+# Expo / Metro outputs
+.expo/
+.expo-shared/
+.metro-health-check*
+dist/
+web-build/
+expo-env.d.ts
+
+# Native/tooling artifacts
+.kotlin/
+.gradle/
+build/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and coverage
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+logs/
+coverage/
+test-results/
+.eslintcache
+*.tsbuildinfo
+
+# Project-specific
+app-example
+backend/
+
+# Large archives and design sources
+*.zip
+*.tgz
+*.gz
+*.rar
+*.7z
+*.psd
+*.ai
+*.sketch
+
+# Optional: ignore native projects if using Managed workflow (leave included for Bare)
+# ios/
+# android/

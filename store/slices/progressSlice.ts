@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface Lesson {
   id: string;
   title: string;
-  type: 'challenge' | 'tutorial' | 'project';
+  type: 'challenge' | 'tutorial' | 'project' | 'exercise';
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   completedAt?: string;
   score?: number;
@@ -32,6 +32,8 @@ export interface ProgressState {
     codeState?: string;
     lastSavedAt: string;
   } | null;
+  // Stores generated lesson content keyed by lesson id for persistence
+  lessonContents: Record<string, any>;
   badges: Badge[];
   streak: Streak;
   totalXP: number;
@@ -48,6 +50,7 @@ export interface ProgressState {
 const initialState: ProgressState = {
   completedLessons: [],
   currentLesson: null,
+  lessonContents: {},
   badges: [],
   streak: {
     current: 0,
@@ -110,6 +113,12 @@ export const progressSlice = createSlice({
     updateCurrentLesson: (state, action: PayloadAction<ProgressState['currentLesson']>) => {
       state.currentLesson = action.payload;
     },
+
+    // Persist generated lesson content by id so Learn tab can render and it survives reloads
+    storeLessonContent: (state, action: PayloadAction<{ id: string; content: any }>) => {
+      const { id, content } = action.payload;
+      state.lessonContents[id] = content;
+    },
     
     updateLessonProgress: (state, action: PayloadAction<{ id: string; progress: number; codeState?: string }>) => {
       const { id, progress, codeState } = action.payload;
@@ -161,6 +170,7 @@ export const {
   unlockBadge,
   updateStreak,
   resetProgress,
+  storeLessonContent,
 } = progressSlice.actions;
 
 export default progressSlice.reducer;

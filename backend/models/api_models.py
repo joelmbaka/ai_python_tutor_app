@@ -6,7 +6,7 @@ These models define the structure of data exchanged between the frontend and bac
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Literal
 from datetime import datetime, date
-from .lesson_models import LessonContent
+from .lesson_models import LessonContent, SimpleChallenge
 
 class StudentProfile(BaseModel):
     """Student profile information for lesson personalization"""
@@ -149,9 +149,6 @@ class CurriculumOverview(BaseModel):
     skill_progression: List[str] = Field(
         description="Main skill areas covered in order"
     )
-    lesson_types_distribution: Dict[str, int] = Field(
-        description="Count of each lesson type (challenge, tutorial, project, assessment)"
-    )
 
 class HealthCheckResponse(BaseModel):
     """Response model for health check endpoint"""
@@ -169,4 +166,47 @@ class HealthCheckResponse(BaseModel):
     ai_models_status: Dict[str, str] = Field(
         description="Status of AI model connections",
         default_factory=dict
+    )
+
+class GenerateNewChallengeRequest(BaseModel):
+    """Request model for generating a new challenge based on current lesson context"""
+    lesson_id: str = Field(
+        description="Current lesson ID for context",
+        example="variables_intro_8_10"
+    )
+    current_challenge: Dict[str, Any] = Field(
+        description="Current challenge details for reference"
+    )
+    student_profile: StudentProfile = Field(
+        description="Student information for personalization"
+    )
+    difficulty: int = Field(
+        description="Requested difficulty level (1-5)",
+        ge=1, le=5,
+        default=3
+    )
+    lesson_context: Optional[Dict[str, Any]] = Field(
+        description="Additional lesson context for challenge generation",
+        default=None
+    )
+
+class GenerateNewChallengeResponse(BaseModel):
+    """Response model for new challenge generation"""
+    success: bool = Field(description="Whether challenge generation was successful")
+    new_challenge: Optional[SimpleChallenge] = Field(
+        description="Generated new challenge",
+        default=None
+    )
+    generation_time_seconds: Optional[float] = Field(
+        description="Time taken to generate the challenge",
+        default=None,
+        ge=0
+    )
+    error_message: Optional[str] = Field(
+        description="Error message if generation failed",
+        default=None
+    )
+    fallback_used: bool = Field(
+        description="Whether fallback content was used instead of AI",
+        default=False
     )

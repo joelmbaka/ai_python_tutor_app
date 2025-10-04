@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { LessonCard } from '../../components/ui/LessonCard';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { apiService, LessonContent, StartLearningResponse } from '../../services/api';
-import { updateCurrentLesson } from '../../store/slices/progressSlice';
+import { updateCurrentLesson, storeLessonContent } from '../../store/slices/progressSlice';
 import { RootState } from '../../store/store';
 
 interface LearningState {
@@ -35,7 +35,8 @@ export default function LearnScreen() {
   const dispatch = useDispatch();
   
   const { isOnboarded, profile } = useSelector((state: RootState) => state.user);
-  const { currentLesson, completedLessons } = useSelector((state: RootState) => state.progress);
+  const { currentLesson, completedLessons, lessonContents } = useSelector((state: RootState) => state.progress);
+  const coinBalance = useSelector((state: RootState) => state.coins.balance);
 
   const [state, setState] = useState<LearningState>({
     isLoading: false,
@@ -87,7 +88,7 @@ export default function LearnScreen() {
         experience_level: profile.experience || 'beginner',
         learning_goals: ['Learn Python basics'],
         preferred_difficulty: 'easy',
-        interests: profile.interests || ['games', 'art'],
+        interests: profile.interests ?? [],
       };
 
       // Remove studentProgress as it's not needed in the new API
@@ -98,8 +99,8 @@ export default function LearnScreen() {
           name: profile.name || 'Student',
           age: profile.age || 10,
           experience: profile.experience || 'beginner',
-          learning_style: profile.preferredStyle || 'visual',
-          interests: profile.interests || ['games', 'art'],
+          learning_style: profile.preferredStyle || 'mixed',
+          interests: profile.interests ?? [],
         },
         custom_instructions: `First lesson for ${profile.name}, age ${profile.age}`,
       });
@@ -116,13 +117,17 @@ export default function LearnScreen() {
           progress: 0,
           lastSavedAt: new Date().toISOString()
         }));
+        // Persist content so it's available after reloads
+        dispatch(storeLessonContent({ id: state.coursework.first_lesson.lesson_id, content: response.lesson_content }));
         
-        // Navigate to lesson screen
+        // Navigate to lesson screen with sequencing info
         router.push({
           pathname: '/lesson',
           params: {
             lessonId: state.coursework.first_lesson.lesson_id,
             lessonData: JSON.stringify(response.lesson_content),
+            lessonPosition: state.coursework.first_lesson.position.toString(),
+            totalLessons: state.coursework.first_lesson.total_lessons.toString(),
           },
         });
       } else {
@@ -145,16 +150,33 @@ export default function LearnScreen() {
   };
 
   const handleLessonPress = (lessonId: string, position: number) => {
-    if (position === 1 && !state.generatedLesson) {
-      generateFirstLesson();
-    } else {
-      // For now, just show coming soon
-      Alert.alert(
-        'Coming Soon',
-        'This lesson will be available once you complete the previous lessons.',
-        [{ text: 'OK' }]
-      );
+    if (position === 1) {
+      const candidateIdFromCoursework = state.coursework?.first_lesson.lesson_id;
+      const preferredId = currentLesson?.id || (lessonContents && Object.keys(lessonContents)[0]) || candidateIdFromCoursework;
+      const persistedLesson = preferredId ? (lessonContents?.[preferredId] as LessonContent | undefined) : undefined;
+      if (persistedLesson && state.coursework) {
+        router.push({
+          pathname: '/lesson',
+          params: {
+            lessonId: preferredId || lessonId,
+            lessonData: JSON.stringify(persistedLesson),
+            lessonPosition: state.coursework.first_lesson.position.toString(),
+            totalLessons: state.coursework.first_lesson.total_lessons.toString(),
+          },
+        });
+      } else {
+        // If content isn't found, generate it now
+        generateFirstLesson();
+      }
+      return;
     }
+
+    // For now, just show coming soon for subsequent lessons
+    Alert.alert(
+      'Coming Soon',
+      'This lesson will be available once you complete the previous lessons.',
+      [{ text: 'OK' }]
+    );
   };
 
   // Remove this check since routing handles onboarding flow
@@ -207,9 +229,15 @@ export default function LearnScreen() {
               Ready to code?
             </Text>
           </View>
-          <TouchableOpacity style={styles.settingsButton}>
-            <Ionicons name="settings-outline" size={24} color={isDark ? '#d1d5db' : '#6b7280'} />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <View style={styles.coinBadge}>
+              <Ionicons name="cash-outline" size={16} color="#ffffff" />
+              <Text style={styles.coinText}>{coinBalance}</Text>
+            </View>
+            <TouchableOpacity style={styles.settingsButton}>
+              <Ionicons name="settings-outline" size={24} color={isDark ? '#d1d5db' : '#6b7280'} />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         {/* Learning Path Overview */}
@@ -245,27 +273,36 @@ export default function LearnScreen() {
         <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
-              Your Next Lesson
+              Coursework
             </Text>
             {state.isGenerating && (
               <LoadingSpinner size={20} text="" />
             )}
           </View>
 
-          {state.coursework && (
-            <LessonCard
-              title="Thinking Like a Computer"
-              description="Learn how computers think and solve problems step by step. This is your introduction to computational thinking!"
-              type="tutorial"
-              duration={15}
-              difficulty={1}
-              position={1}
-              totalLessons={state.coursework.enrolled_coursework.total_lessons}
-              isCompleted={completedLessons.some(lesson => lesson.id === state.coursework?.first_lesson.lesson_id)}
-              onPress={() => handleLessonPress(state.coursework!.first_lesson.lesson_id, 1)}
-              animationDelay={100}
-            />
-          )}
+          {state.coursework && (() => {
+            const candidateIdFromCoursework = state.coursework.first_lesson.lesson_id;
+            const firstLessonId = currentLesson?.id || (lessonContents && Object.keys(lessonContents)[0]) || candidateIdFromCoursework;
+            const persistedLesson = firstLessonId ? (lessonContents?.[firstLessonId] as LessonContent | undefined) : undefined;
+            const title = persistedLesson?.title ?? 'Thinking Like a Computer';
+            const description = persistedLesson?.introduction ?? 'Learn how computers think and solve problems step by step. This is your introduction to computational thinking!';
+            const duration = persistedLesson?.estimated_duration ?? 15;
+            const difficulty = (persistedLesson?.difficulty_rating as number | undefined) ?? 1;
+            return (
+              <LessonCard
+                title={title}
+                description={description}
+                type={'tutorial'}
+                duration={duration}
+                difficulty={difficulty}
+                position={state.coursework.first_lesson.position}
+                totalLessons={state.coursework.enrolled_coursework.total_lessons}
+                isCompleted={firstLessonId ? completedLessons.some(lesson => lesson.id === firstLessonId) : false}
+                onPress={() => handleLessonPress(firstLessonId || candidateIdFromCoursework, state.coursework!.first_lesson.position)}
+                animationDelay={100}
+              />
+            );
+          })()}
         </Animated.View>
 
         {/* Quick Actions */}
@@ -325,6 +362,10 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 10,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   greeting: {
     fontSize: 16,
     marginBottom: 4,
@@ -335,6 +376,20 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     padding: 8,
+    marginLeft: 8,
+  },
+  coinBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  coinText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    marginLeft: 6,
   },
   pathOverview: {
     paddingHorizontal: 16,

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -12,33 +12,99 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { SimpleCodeEditor } from '../components/ui/SimpleCodeEditor';
+import { ExerciseEditor } from '../components/ui/ExerciseEditor';
+import { CoinFlightOverlay } from '../components/ui/CoinFlightOverlay';
+import { CoinDeductToastOverlay } from '../components/ui/CoinDeductToastOverlay';
 
 import { LessonCompletionModal } from '../components/modals/LessonCompletionModal';
-import { LessonContent } from '../services/api';
-import { completeLesson } from '../store/slices/progressSlice';
+import { NewChallengeModal } from '../components/modals/NewChallengeModal';
+import { LessonContent, apiService, type GenerateNewChallengeRequest } from '../services/api';
+import { completeLesson, updateLessonProgress } from '../store/slices/progressSlice';
+import { RootState } from '../store/store';
 
 export default function LessonScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const params = useLocalSearchParams();
+  const lessonId = String(params.lessonId || 'unknown_lesson');
   const dispatch = useDispatch();
+  const autoAdvanceSetting = useSelector((state: RootState) => state.settings.learning.autoAdvance);
+  const coinBalance = useSelector((state: RootState) => state.coins.balance);
+  const userProfile = useSelector((state: RootState) => state.user.profile);
+  const progressState = useSelector((state: RootState) => state.progress);
+  const coinBadgeRef = useRef<View | null>(null);
+  const [coinTrigger, setCoinTrigger] = useState(0);
+  const [deductTrigger, setDeductTrigger] = useState(0);
+  const prevBalanceRef = useRef(coinBalance);
+  useEffect(() => {
+    if (coinBalance > prevBalanceRef.current) {
+      setCoinTrigger((t) => t + 1);
+    } else if (coinBalance < prevBalanceRef.current) {
+      setDeductTrigger((t) => t + 1);
+    }
+    prevBalanceRef.current = coinBalance;
+  }, [coinBalance]);
   
-  const [activeTab, setActiveTab] = useState<'learn' | 'code' | 'test'>('learn');
-  const [showMenu, setShowMenu] = useState(false);
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-
+  // Parse lesson data from navigation params before usage
   let lessonData: LessonContent | null = null;
   try {
     lessonData = params.lessonData ? JSON.parse(params.lessonData as string) : null;
   } catch (error) {
     console.error('Failed to parse lesson data:', error);
   }
+  
+  const tabs = ['learn', 'code', 'exercise'];
+  const [activeTab, setActiveTab] = useState<'learn' | 'code' | 'exercise'>('learn');
+  const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  // Allow lesson completion only after a successful challenge run
+  const [challengePassed, setChallengePassed] = useState(false);
+  
+  // New challenge generation states
+  const [showNewChallengeModal, setShowNewChallengeModal] = useState(false);
+  const [isGeneratingChallenge, setIsGeneratingChallenge] = useState(false);
+  const [currentChallenge, setCurrentChallenge] = useState(lessonData?.challenge || null);
+  
+  
+  // Update current challenge when lesson data changes
+  useEffect(() => {
+    if (lessonData?.challenge && !currentChallenge) {
+      setCurrentChallenge(lessonData.challenge);
+    }
+  }, [lessonData]);
+
+  // Lesson sequencing context from navigation (optional)
+  const lessonPosition = params.lessonPosition ? Number(params.lessonPosition) : null;
+  const totalLessons = params.totalLessons ? Number(params.totalLessons) : null;
+  const hasNext = !!(lessonPosition && totalLessons && lessonPosition < totalLessons);
+
+  const steps = lessonData?.tutorial?.steps || [];
+  const totalSteps = steps.length;
+
+  useEffect(() => {
+    // Update overall lesson progress based on step index
+    if (lessonId && totalSteps > 0) {
+      const progressPct = Math.max(0, Math.min(100, Math.round((currentStepIndex / totalSteps) * 100)));
+      dispatch(updateLessonProgress({ id: lessonId, progress: progressPct }));
+    }
+  }, [currentStepIndex, totalSteps, lessonId]);
+
+  const handlePrevStep = () => {
+    setCurrentStepIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextStep = () => {
+    setCurrentStepIndex((prev) => Math.min(totalSteps - 1, prev + 1));
+  };
 
   const handleCompleteLesson = () => {
-    if (lessonData && params.lessonId) {
+    if (lessonData && lessonId) {
       dispatch(completeLesson({
-        id: params.lessonId as string,
+        id: lessonId,
         title: lessonData.title,
         type: 'tutorial', // You might want to get this from lessonData
         difficulty: 'beginner',
@@ -74,6 +140,172 @@ export default function LessonScreen() {
   const handleBackToDashboard = () => {
     setShowCompletionModal(false);
     router.replace('/(tabs)/learn');
+  };
+  
+  const handleGenerateNewChallenge = async (difficulty: number) => {
+    setIsGeneratingChallenge(true);
+    // Keep modal open to show full loading overlay; it will close on success
+    
+    try {
+      const requestData: GenerateNewChallengeRequest = {
+        lesson_id: lessonId,
+        current_challenge: currentChallenge,
+        student_profile: {
+          name: userProfile?.name || 'Student',
+          age: userProfile?.age ?? 12,
+          experience: (userProfile?.experience ?? 'beginner'),
+          learning_style: (userProfile?.preferredStyle ?? 'mixed'),
+          interests: userProfile?.interests ?? ['games', 'science'],
+          completed_lessons: progressState?.completedLessons?.map(l => l.id) ?? [],
+          current_streak: progressState?.streak?.current ?? 0,
+          total_lessons_completed: progressState?.stats?.totalLessonsCompleted ?? 0,
+        },
+        difficulty,
+        lesson_context: {
+          title: lessonData?.title,
+          learning_objectives: lessonData?.learning_objectives,
+          concepts_covered: lessonData?.concepts_covered,
+          estimated_duration: lessonData?.estimated_duration,
+          difficulty_rating: lessonData?.difficulty_rating,
+        },
+      };
+      
+      const result = await apiService.generateNewChallenge(requestData);
+      
+      if (result.success && result.new_challenge) {
+        setCurrentChallenge(result.new_challenge);
+        // Reset challenge passed state for new challenge
+        setChallengePassed(false);
+        // Switch to code tab to show new challenge
+        setActiveTab('code');
+        // Close modal after successful generation
+        setShowNewChallengeModal(false);
+      } else {
+        throw new Error(result.error_message || 'Failed to generate challenge');
+      }
+    } catch (error) {
+      console.error('Error generating new challenge:', error);
+      Alert.alert(
+        'Generation Failed',
+        'Could not generate a new challenge. Please try again later.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsGeneratingChallenge(false);
+    }
+  };
+
+  const renderExercises = () => {
+    // Prefer API-provided exercises. Support both a single Exercise (lessonData.exercise)
+    // and an array (lessonData.exercises). Fallback to mock list if none provided.
+    const apiExercises = (lessonData as any)?.exercises;
+    const exercises = (Array.isArray(apiExercises) && apiExercises.length > 0)
+      ? apiExercises
+      : (lessonData?.exercise
+          ? [{
+              id: 'api-1',
+              title: 'Practice Exercise',
+              description: (lessonData.exercise as any).question,
+              starterCode: (lessonData.exercise as any).starter_code,
+              explanation: (lessonData.exercise as any).explanation,
+              difficulty: 'Easy'
+            }]
+          : [
+      {
+        id: '1',
+        title: 'Basic Variable Assignment',
+        description: 'Create variables and assign values to them',
+        starterCode: '# Create a variable named "name" and assign your name to it\n\n',
+        solution: '# Create a variable named "name" and assign your name to it\nname = "Your Name"',
+        difficulty: 'Easy'
+      },
+      {
+        id: '2', 
+        title: 'Simple Function',
+        description: 'Write a function that takes two numbers and returns their sum',
+        starterCode: '# Write a function called "add_numbers" that takes two parameters\n\n\ndef add_numbers(a, b):\n    # Your code here\n    pass',
+        solution: 'def add_numbers(a, b):\n    return a + b',
+        difficulty: 'Medium'
+      },
+      {
+        id: '3',
+        title: 'List Operations', 
+        description: 'Create a list and perform basic operations on it',
+        starterCode: '# Create a list of your favorite colors\n# Then add a new color to the list\n\n',
+        solution: '# Create a list of your favorite colors\ncolors = ["blue", "green", "red"]\n# Then add a new color to the list\ncolors.append("purple")',
+        difficulty: 'Easy'
+      }
+    ]);
+
+    return (
+      <View style={styles.exercisesContainer}>
+        <Text style={[styles.exercisesHeader, { color: isDark ? '#ffffff' : '#111827' }]}>
+          Practice Exercises
+        </Text>
+        <Text style={[styles.exercisesSubheader, { color: isDark ? '#d1d5db' : '#6b7280' }]}>
+          Click on any exercise card to expand the code editor
+        </Text>
+        
+        {exercises.map((exercise: any, index: number) => (
+          <View key={String(exercise.id ?? index + 1)} style={[styles.exerciseCard, { backgroundColor: isDark ? '#2a2a3e' : '#ffffff' }]}>
+            <TouchableOpacity
+              style={styles.exerciseCardHeader}
+              onPress={() => {
+                const idStr = String(exercise.id ?? index + 1);
+                setExpandedExerciseId(expandedExerciseId === idStr ? null : idStr);
+              }}
+            >
+              <View style={styles.exerciseCardLeft}>
+                <Text style={[styles.exerciseNumber, { color: '#6366f1' }]}> 
+                  {index + 1}
+                </Text>
+                <View style={styles.exerciseInfo}>
+                  <Text style={[styles.exerciseTitle, { color: isDark ? '#ffffff' : '#111827' }]}> 
+                    {exercise.title ?? 'Practice Exercise'}
+                  </Text>
+                  {expandedExerciseId !== String(exercise.id ?? index + 1) && (
+                    <Text style={[styles.exerciseDescription, { color: isDark ? '#d1d5db' : '#6b7280' }]}> 
+                      {exercise.description ?? exercise.question ?? ''}
+                    </Text>
+                  )}
+                  <View style={styles.exerciseMeta}>
+                    <View style={[styles.difficultyBadge, { 
+                      backgroundColor: (exercise.difficulty ?? 'Easy') === 'Easy' ? '#10b981' : 
+                                     (exercise.difficulty ?? 'Easy') === 'Medium' ? '#f59e0b' : '#ef4444' 
+                    }]}> 
+                      <Text style={styles.difficultyText}>{exercise.difficulty ?? 'Easy'}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+              <Ionicons 
+                name={expandedExerciseId === String(exercise.id ?? index + 1) ? 'chevron-up' : 'chevron-down'} 
+                size={24} 
+                color={isDark ? '#9ca3af' : '#6b7280'} 
+              />
+            </TouchableOpacity>
+            
+            {expandedExerciseId === String(exercise.id ?? index + 1) && (
+              <Animated.View entering={FadeIn} style={styles.exerciseCodeEditor}>
+                <ExerciseEditor
+                  question={exercise.question ?? exercise.description}
+                  explanation={exercise.explanation ?? (exercise.solution ? `Solution: ${exercise.solution}` : '')}
+                  starterCode={exercise.starter_code ?? exercise.starterCode}
+                  lessonId={lessonId}
+                  onCodeChange={(code) => {
+                    const progressPct = Math.max(0, Math.min(100, Math.round((currentStepIndex / totalSteps) * 100)));
+                    dispatch(updateLessonProgress({ id: lessonId, progress: progressPct, codeState: code }));
+                  }}
+                  onRunCode={(code, results) => {
+                    console.log('Running exercise code:', code, results);
+                  }}
+                />
+              </Animated.View>
+            )}
+          </View>
+        ))}
+      </View>
+    );
   };
 
   if (!lessonData) {
@@ -126,33 +358,63 @@ export default function LessonScreen() {
             </View>
 
             {/* Tutorial Steps */}
-            {lessonData.tutorial && (
+            {lessonData.tutorial && totalSteps > 0 && (
               <View style={[styles.card, { backgroundColor: isDark ? '#2a2a3e' : '#ffffff' }]}>
-                <Text style={[styles.cardTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
-                  Tutorial Steps
-                </Text>
-                {lessonData.tutorial.steps.map((step, index) => (
-                  <View key={index} style={styles.stepItem}>
-                    <View style={styles.stepHeader}>
-                      <View style={styles.stepNumber}>
-                        <Text style={styles.stepNumberText}>{step.step_number}</Text>
-                      </View>
-                      <Text style={[styles.stepTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
-                        {step.title}
-                      </Text>
-                    </View>
-                    <Text style={[styles.stepContent, { color: isDark ? '#d1d5db' : '#4b5563' }]}>
-                      {step.content}
-                    </Text>
-                    {step.code_example && (
-                      <View style={[styles.codeBlock, { backgroundColor: isDark ? '#1f2937' : '#f3f4f6' }]}>
-                        <Text style={[styles.codeText, { color: isDark ? '#e5e7eb' : '#374151' }]}>
-                          {step.code_example}
+                <View style={styles.stepHeader}>
+                  <Text style={[styles.cardTitle, { color: isDark ? '#ffffff' : '#111827', flex: 1 }]}>
+                    Tutorial Steps
+                  </Text>
+                  <Text style={[styles.stepIndicator, { color: isDark ? '#d1d5db' : '#6b7280' }]}>Step {currentStepIndex + 1} of {totalSteps}</Text>
+                </View>
+                {(() => {
+                  const step = steps[currentStepIndex] as any;
+                  if (!step) return null;
+                  const stepTitle = step.title ?? step.heading ?? step.name ?? `Step ${step.step_number ?? currentStepIndex + 1}`;
+                  const stepText = (step.content ?? step.text ?? step.description ?? '').toString();
+                  const stepCode = step.code_example ?? step.code ?? step.example;
+                  return (
+                    <View style={styles.stepItem}>
+                      <View style={styles.stepHeader}>
+                        <View style={styles.stepNumber}>
+                          <Text style={styles.stepNumberText}>{step.step_number ?? currentStepIndex + 1}</Text>
+                        </View>
+                        <Text style={[styles.stepTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
+                          {stepTitle}
                         </Text>
                       </View>
-                    )}
-                  </View>
-                ))}
+                      {!!stepText && (
+                        <Text style={[styles.stepContent, { color: isDark ? '#d1d5db' : '#4b5563' }]}>
+                          {stepText}
+                        </Text>
+                      )}
+                      {!!stepCode && (
+                        <View style={[styles.codeBlock, { backgroundColor: isDark ? '#1f2937' : '#f3f4f6' }]}>
+                          <Text style={[styles.codeText, { color: isDark ? '#e5e7eb' : '#374151' }]}>
+                            {stepCode}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })()}
+                <View style={styles.stepNav}>
+                  <TouchableOpacity
+                    style={[styles.stepNavButton, { opacity: currentStepIndex === 0 ? 0.5 : 1 }]}
+                    disabled={currentStepIndex === 0}
+                    onPress={handlePrevStep}
+                  >
+                    <Ionicons name="chevron-back" size={20} color="#111827" />
+                    <Text style={styles.stepNavButtonText}>Previous</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.stepNavButton, { opacity: currentStepIndex === totalSteps - 1 ? 0.5 : 1 }]}
+                    disabled={currentStepIndex === totalSteps - 1}
+                    onPress={handleNextStep}
+                  >
+                    <Text style={styles.stepNavButtonText}>Next</Text>
+                    <Ionicons name="chevron-forward" size={20} color="#111827" />
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -175,9 +437,9 @@ export default function LessonScreen() {
             )}
 
             {/* Encouragement */}
-            <View style={[styles.card, styles.encouragementCard]}>
-              <Ionicons name="heart" size={24} color="#ef4444" />
-              <Text style={[styles.encouragementText, { color: isDark ? '#ffffff' : '#111827' }]}>
+            <View style={[styles.card, styles.encouragementCard, { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.1)' : '#f0fdf4' }]}>
+              <Ionicons name="star" size={24} color="#22c55e" />
+              <Text style={[styles.encouragementText, { color: isDark ? '#ffffff' : '#15803d' }]}>
                 {lessonData.encouragement}
               </Text>
             </View>
@@ -187,70 +449,53 @@ export default function LessonScreen() {
       case 'code':
         return (
           <Animated.View entering={FadeIn} style={styles.tabContent}>
-            {lessonData.challenge && (
-              <>
-                <View style={[styles.card, { backgroundColor: isDark ? '#2a2a3e' : '#ffffff' }]}>
-                  <Text style={[styles.cardTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
-                    Starter Code
-                  </Text>
-                  <View style={[styles.codeBlock, { backgroundColor: isDark ? '#1f2937' : '#f3f4f6' }]}>
-                    <Text style={[styles.codeText, { color: isDark ? '#e5e7eb' : '#374151' }]}>
-                      {lessonData.challenge.starter_code}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={[styles.card, { backgroundColor: isDark ? '#2a2a3e' : '#ffffff' }]}>
-                  <Text style={[styles.cardTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
-                    Hints
-                  </Text>
-                  {lessonData.challenge.hints.map((hint, index) => (
-                    <View key={index} style={styles.hintItem}>
-                      <Ionicons name="bulb-outline" size={20} color="#f59e0b" />
-                      <Text style={[styles.hintText, { color: isDark ? '#d1d5db' : '#4b5563' }]}>
-                        {hint}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </>
+            {currentChallenge && (
+              <SimpleCodeEditor
+                key={currentChallenge.problem_description || `${lessonId}-challenge`}
+                initialCode={currentChallenge.starter_code || ''}
+                hints={currentChallenge.hints || []}
+                solutionCode={currentChallenge.solution_code || ''}
+                problemDescription={currentChallenge.problem_description || ''}
+                explanation={currentChallenge.explanation || ''}
+                onCodeChange={(code) => {
+                  // Track student progress and persist code state
+                  const progressPct = Math.max(0, Math.min(100, Math.round((currentStepIndex / totalSteps) * 100)));
+                  dispatch(updateLessonProgress({ id: lessonId, progress: progressPct, codeState: code }));
+                }}
+                onRunCode={(code, meta) => {
+                  // Track code execution and success
+                  console.log('Executing solution code:', code, meta);
+                  if (meta?.success) {
+                    setChallengePassed(true);
+                  }
+                }}
+              />
             )}
+            
+            {/* New Challenge Button */}
+            <View style={styles.newChallengeContainer}>
+              <TouchableOpacity
+                style={[styles.newChallengeButton, { backgroundColor: isDark ? '#374151' : '#f3f4f6' }]}
+                onPress={() => setShowNewChallengeModal(true)}
+                disabled={isGeneratingChallenge}
+              >
+                <Ionicons 
+                  name={isGeneratingChallenge ? "hourglass-outline" : "refresh"} 
+                  size={20} 
+                  color={isDark ? '#ffffff' : '#111827'} 
+                />
+                <Text style={[styles.newChallengeButtonText, { color: isDark ? '#ffffff' : '#111827' }]}>
+                  {isGeneratingChallenge ? 'Generating...' : 'New Challenge'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         );
 
-      case 'test':
+      case 'exercise':
         return (
           <Animated.View entering={FadeIn} style={styles.tabContent}>
-            {lessonData.challenge?.test_cases && (
-              <View style={[styles.card, { backgroundColor: isDark ? '#2a2a3e' : '#ffffff' }]}>
-                <Text style={[styles.cardTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
-                  Test Cases
-                </Text>
-                {lessonData.challenge.test_cases.map((testCase, index) => (
-                  <View key={index} style={styles.testCaseItem}>
-                    <Text style={[styles.testCaseTitle, { color: isDark ? '#ffffff' : '#111827' }]}>
-                      Test Case {index + 1}: {testCase.description}
-                    </Text>
-                    <View style={styles.testCaseDetails}>
-                      <Text style={[styles.testCaseLabel, { color: isDark ? '#d1d5db' : '#6b7280' }]}>
-                        Input:
-                      </Text>
-                      <Text style={[styles.testCaseValue, { color: isDark ? '#e5e7eb' : '#374151' }]}>
-                        {testCase.input}
-                      </Text>
-                    </View>
-                    <View style={styles.testCaseDetails}>
-                      <Text style={[styles.testCaseLabel, { color: isDark ? '#d1d5db' : '#6b7280' }]}>
-                        Expected Output:
-                      </Text>
-                      <Text style={[styles.testCaseValue, { color: isDark ? '#e5e7eb' : '#374151' }]}>
-                        {testCase.expected_output}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
+            {renderExercises()}
           </Animated.View>
         );
 
@@ -284,6 +529,10 @@ export default function LessonScreen() {
           </Text>
         </View>
         <View style={styles.menuContainer}>
+          <View style={styles.coinBadge} ref={coinBadgeRef}>
+            <Ionicons name="cash-outline" size={16} color="#ffffff" />
+            <Text style={styles.coinText}>{coinBalance}</Text>
+          </View>
           <TouchableOpacity 
             style={styles.menuButton} 
             onPress={() => setShowMenu(!showMenu)}
@@ -316,7 +565,7 @@ export default function LessonScreen() {
           {[
             { key: 'learn', label: 'Learn', icon: 'book-outline' },
             { key: 'code', label: 'Code', icon: 'code-slash-outline' },
-            { key: 'test', label: 'Test', icon: 'checkmark-circle-outline' },
+            { key: 'exercise', label: 'Exercises', icon: 'create-outline' },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.key}
@@ -355,12 +604,17 @@ export default function LessonScreen() {
       </ScrollView>
 
       {/* Bottom Action */}
-      <Animated.View entering={FadeInDown.delay(400)} style={styles.bottomAction}>
-        <TouchableOpacity style={styles.completeButton} onPress={handleCompleteLesson}>
-          <Text style={styles.completeButtonText}>Mark as Complete</Text>
-          <Ionicons name="checkmark" size={20} color="#ffffff" />
-        </TouchableOpacity>
-      </Animated.View>
+      {challengePassed && (
+        <Animated.View entering={FadeInDown.delay(400)} style={styles.bottomAction}>
+          <TouchableOpacity
+            style={styles.completeButton}
+            onPress={handleCompleteLesson}
+          >
+            <Text style={styles.completeButtonText}>Mark as Complete</Text>
+            <Ionicons name="checkmark" size={20} color="#ffffff" />
+          </TouchableOpacity>
+        </Animated.View>
+      )}
 
       {/* Completion Modal */}
       <LessonCompletionModal
@@ -368,9 +622,19 @@ export default function LessonScreen() {
         onContinue={handleContinueToNext}
         onBackToDashboard={handleBackToDashboard}
         lessonTitle={lessonData?.title || 'Lesson'}
-        nextLessonTitle="Variables and Data Types" // This should come from your lesson sequence
-        hasNextLesson={true} // This should be determined based on lesson position
+        hasNextLesson={hasNext}
+        autoAdvanceDefault={autoAdvanceSetting}
       />
+      
+      <NewChallengeModal
+        visible={showNewChallengeModal}
+        onClose={() => setShowNewChallengeModal(false)}
+        onGenerateChallenge={handleGenerateNewChallenge}
+        isLoading={isGeneratingChallenge}
+      />
+      
+      <CoinFlightOverlay trigger={coinTrigger} targetRef={coinBadgeRef} />
+      <CoinDeductToastOverlay trigger={deductTrigger} targetRef={coinBadgeRef} text="-1" />
     </SafeAreaView>
   );
 }
@@ -410,10 +674,26 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   menuButton: {
     padding: 8,
     marginLeft: 8,
+  },
+  coinBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  coinText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 6,
   },
   dropdown: {
     position: 'absolute',
@@ -528,6 +808,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
+  stepIndicator: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   stepContent: {
     fontSize: 14,
     lineHeight: 20,
@@ -574,12 +858,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 12,
+    paddingLeft: 8,
+  },
+  hintNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginRight: 12,
   },
   hintText: {
     fontSize: 14,
-    lineHeight: 20,
-    marginLeft: 12,
     flex: 1,
+    lineHeight: 20,
+  },
+  challengeDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    marginTop: 8,
+  },
+  hintSubtext: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginBottom: 12,
   },
   testCaseItem: {
     marginBottom: 16,
@@ -604,6 +910,26 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono',
     marginTop: 2,
   },
+  stepNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  stepNavButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#eef2ff',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  stepNavButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
   bottomAction: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -615,6 +941,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
+  },
+  completeButtonDisabled: {
+    backgroundColor: '#9ca3af',
   },
   completeButtonText: {
     color: '#ffffff',
@@ -645,5 +974,106 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  exercisesContainer: {
+    gap: 16,
+  },
+  exercisesHeader: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  exercisesSubheader: {
+    fontSize: 16,
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  exerciseCard: {
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  exerciseCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  exerciseCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  exerciseNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    textAlign: 'center',
+    lineHeight: 36,
+    marginRight: 16,
+  },
+  exerciseInfo: {
+    flex: 1,
+  },
+  exerciseTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  exerciseDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  exerciseMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  difficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  difficultyText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  exerciseCodeEditor: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(229, 231, 235, 0.3)',
+    paddingTop: 16,
+  },
+  newChallengeContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(229, 231, 235, 0.3)',
+  },
+  newChallengeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  newChallengeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });

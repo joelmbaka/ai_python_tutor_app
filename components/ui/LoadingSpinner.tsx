@@ -12,6 +12,7 @@ interface LoadingSpinnerProps {
   color?: string;
   text?: string;
   subText?: string;
+  compact?: boolean;
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
@@ -19,6 +20,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   color = '#6366f1',
   text = 'Loading...',
   subText,
+  compact = false,
 }) => {
   const rotation = useSharedValue(0);
 
@@ -37,7 +39,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, compact && styles.compactContainer]}>
       <Animated.View
         style={[
           styles.spinner,
@@ -46,6 +48,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             height: size,
             borderColor: `${color}20`,
             borderTopColor: color,
+            marginBottom: compact ? 0 : 16,
           },
           animatedStyle,
         ]}
@@ -61,6 +64,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+  compactContainer: {
+    padding: 0,
   },
   spinner: {
     borderWidth: 3,

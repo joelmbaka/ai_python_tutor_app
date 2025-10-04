@@ -1,5 +1,5 @@
 import { BlurView } from 'expo-blur';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   Modal,
@@ -10,10 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
 import { ChallengeSlide1 } from './slides/ChallengeSlide1';
 import { PreferencesSlide } from './slides/PreferencesSlide';
 import { UserDetailsSlide } from './slides/UserDetailsSlide';
 import { WelcomeSlide } from './slides/WelcomeSlide';
+import CoinFlightOverlay from '../ui/CoinFlightOverlay';
 
 const { width, height } = Dimensions.get('window');
 
@@ -46,14 +50,25 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [userData, setUserData] = useState<Partial<UserData>>({});
   const [challenge1Completed, setChallenge1Completed] = useState(false);
   const [challenge2Completed, setChallenge2Completed] = useState(false);
+  const coinBalance = useSelector((state: RootState) => state.coins.balance);
+  const [coinTrigger, setCoinTrigger] = useState(0);
+  const prevBalanceRef = useRef(coinBalance);
+  const coinBadgeRef = useRef<View | null>(null);
 
   const slides = [
     { id: 'welcome', component: WelcomeSlide },
     { id: 'challenge1', component: ChallengeSlide1 },
     // { id: 'challenge2', component: ChallengeSlide2 }, // Hidden for now
     { id: 'userDetails', component: UserDetailsSlide },
-    { id: 'preferences', component: PreferencesSlide },
   ];
+
+  // Trigger coin flight animation on balance increase (except on welcome slide)
+  useEffect(() => {
+    if (coinBalance > prevBalanceRef.current && currentSlide !== 0) {
+      setCoinTrigger((t) => t + 1);
+    }
+    prevBalanceRef.current = coinBalance;
+  }, [coinBalance, currentSlide]);
 
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
@@ -61,19 +76,23 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     } else {
       // Complete onboarding with proper validation
       if (isCompleteUserData(userData)) {
-        onComplete(userData);
+        const finalData: UserData = {
+          name: userData.name!,
+          age: userData.age!,
+          experience: userData.experience!,
+          preferredStyle: userData.preferredStyle!,
+          interests: userData.interests ?? [],
+        };
+        onComplete(finalData);
       }
     }
   };
 
   const isCompleteUserData = (data: Partial<UserData>): data is UserData => {
     return !!(
-      data.name && 
-      data.age && 
-      data.experience && 
-      data.interests && 
-      data.interests.length > 0 && 
-      data.preferredStyle
+      data.name &&
+      data.age &&
+      data.experience
     );
   };
 
@@ -93,9 +112,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         return true;
       case 1: // Challenge 1
         return challenge1Completed;
-      case 2: // User Details (Challenge 2 is hidden)
-        return !!(userData.name && userData.age);
-      case 3: // Preferences
+      case 2: // User Details
         return isCompleteUserData(userData);
       default:
         return false;
@@ -163,6 +180,17 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <SafeAreaView style={styles.container}>
         <BlurView intensity={20} style={styles.blurContainer}>
+          {/* Coin Badge (hidden on welcome slide) */}
+          {currentSlide !== 0 && (
+            <View ref={coinBadgeRef} style={styles.coinBadgeTopRight}>
+              <View style={styles.coinBadge}>
+                <Ionicons name="cash-outline" size={16} color="#ffffff" />
+                <Text style={styles.coinText}>{coinBalance}</Text>
+              </View>
+            </View>
+          )}
+          {/* Coin flight overlay */}
+          <CoinFlightOverlay trigger={coinTrigger} targetRef={coinBadgeRef} />
           {/* Progress Indicator */}
           {renderProgressIndicator()}
 
@@ -215,8 +243,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 24,
+    marginTop: 8,
     gap: 8,
+  },
+  coinBadgeTopRight: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
+  },
+  coinBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+  },
+  coinText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    marginLeft: 6,
   },
   progressDot: {
     width: 10,

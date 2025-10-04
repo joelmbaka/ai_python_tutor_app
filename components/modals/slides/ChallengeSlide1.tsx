@@ -8,23 +8,32 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { UserData } from '../OnboardingModal';
+import { useAppDispatch } from '../../../store/hooks';
+import { addCoins } from '../../../store/slices/coinsSlice';
 
 interface ChallengeSlide1Props {
   onNext: () => void;
   onChallengeComplete: () => void;
   canProceed: boolean;
+  onUserDataUpdate?: (data: Partial<UserData>) => void;
+  userData?: Partial<UserData>;
 }
 
 export const ChallengeSlide1: React.FC<ChallengeSlide1Props> = ({
   onChallengeComplete,
   canProceed,
+  onUserDataUpdate,
+  userData,
 }) => {
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(userData?.name || '');
   const [hasRun, setHasRun] = useState(false);
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(false);
+  const dispatch = useAppDispatch();
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const outputAnim = React.useRef(new Animated.Value(0)).current;
@@ -38,6 +47,15 @@ export const ChallengeSlide1: React.FC<ChallengeSlide1Props> = ({
     }).start();
   }, []);
 
+  // Keep layout centered; no shifting to top on keyboard/output
+
+  // Keep shared onboarding userData updated with the entered name
+  React.useEffect(() => {
+    if (onUserDataUpdate) {
+      onUserDataUpdate({ name: userName.trim() });
+    }
+  }, [userName]);
+
   const runCode = () => {
     if (!userName.trim()) {
       setOutput('⚠️ Please enter your name first!');
@@ -48,10 +66,19 @@ export const ChallengeSlide1: React.FC<ChallengeSlide1Props> = ({
     
     // Simulate code execution
     setTimeout(() => {
-      const generatedOutput = `🎉 Welcome to Python, ${userName}!\n🌟 ${userName} is going to be an amazing programmer!\n✨ You just ran your first Python code!`;
+      const generatedOutput = `Hi, ${userName}!`;
       setOutput(generatedOutput);
       setHasRun(true);
       setIsRunning(false);
+      
+      // Award 1 coin only the first time the name is printed (and not already completed)
+      if (!hasRun && !canProceed) {
+        try {
+          dispatch(addCoins(1));
+        } catch (e) {
+          console.warn('Failed to award onboarding coin:', e);
+        }
+      }
       
       // Animate output appearance
       Animated.timing(outputAnim, {
@@ -68,7 +95,6 @@ export const ChallengeSlide1: React.FC<ChallengeSlide1Props> = ({
       // Mark challenge as complete
       setTimeout(() => {
         onChallengeComplete();
-        setShowExplanation(true);
       }, 1000);
     }, 1500);
   };
@@ -76,29 +102,32 @@ export const ChallengeSlide1: React.FC<ChallengeSlide1Props> = ({
   const getCodePreview = () => {
     const name = userName || 'Your Name';
     return `name = "${name}"
-print(f"🎉 Welcome to Python, {name}!")
-print(f"🌟 {name} is going to be an amazing programmer!")`;
+print("Hi, " + name + "!")`;
   };
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <ScrollView 
-        ref={scrollViewRef}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
+        <ScrollView 
+          ref={scrollViewRef}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={[styles.content, styles.centeredContent]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.challengeNumber}>Challenge 1</Text>
-            <Text style={styles.title}>Create Your Welcome Message! 🎉</Text>
-            <Text style={styles.subtitle}>
-              Let's make Python say hello to you personally
-            </Text>
+            <Text style={styles.title}>Create your first interactive program</Text>
+            <Text style={styles.subtitle}>Type your name below, then run to print a greeting.</Text>
           </View>
 
           {/* Input Section */}
           <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>What's your name?</Text>
+            <Text style={styles.inputLabel}>Your name</Text>
             <TextInput
               style={styles.nameInput}
               placeholder="Enter your awesome name..."
@@ -159,30 +188,10 @@ print(f"🌟 {name} is going to be an amazing programmer!")`;
             </Animated.View>
           )}
 
-          {/* Explanation */}
-          {showExplanation && (
-            <Animated.View
-              style={[
-                styles.explanationSection,
-                { opacity: outputAnim },
-              ]}
-            >
-              <Text style={styles.explanationTitle}>🎊 Congratulations!</Text>
-              <Text style={styles.explanationText}>
-                You just wrote your first Python program! Here's what happened:
-                {'\n\n'}
-                • <Text style={styles.highlight}>Variables</Text>: You stored your name in a "box" called `name`
-                {'\n'}
-                • <Text style={styles.highlight}>Print Function</Text>: You used `print()` to display messages
-                {'\n'}
-                • <Text style={styles.highlight}>F-strings</Text>: You inserted your name into the text with `{userName}`
-                {'\n\n'}
-                You're already thinking like a programmer! 🚀
-              </Text>
-            </Animated.View>
-          )}
-        </View>
-      </ScrollView>
+          
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Animated.View>
   );
 };
@@ -193,7 +202,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   content: {
+    flex: 1,
     padding: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  centeredContent: {
+    justifyContent: 'center',
+    paddingTop: 20,
+    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
@@ -299,28 +317,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#4CAF50',
     lineHeight: 24,
-  },
-  explanationSection: {
-    backgroundColor: 'rgba(74, 144, 226, 0.1)',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(74, 144, 226, 0.3)',
-  },
-  explanationTitle: {
-    fontSize: 20,
-    color: '#FFD700',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  explanationText: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 24,
-  },
-  highlight: {
-    color: '#4A90E2',
-    fontWeight: 'bold',
   },
 });

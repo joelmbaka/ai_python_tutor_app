@@ -33,20 +33,3 @@ llama_maverick = LLM(
     base_url="https://integrate.api.nvidia.com/v1"
 )
 
-# Alternative: OpenAI models (fallback option)
-# Uncomment if you prefer to use OpenAI instead of NVIDIA NIM
-"""
-from openai import OpenAI
-
-openai_gpt4 = LLM(
-    model="gpt-4-turbo-preview",
-    temperature=0.7,
-    api_key=os.getenv("OPENAI_API_KEY")
-)
-
-openai_gpt35 = LLM(
-    model="gpt-3.5-turbo",
-    temperature=0.6,
-    api_key=os.getenv("OPENAI_API_KEY")
-)
-"""

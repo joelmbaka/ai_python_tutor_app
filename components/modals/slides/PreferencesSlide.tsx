@@ -41,16 +41,7 @@ const LEARNING_STYLES = [
   },
 ];
 
-const INTERESTS = [
-  { id: 'games', label: 'Games & Animation', emoji: '🎮' },
-  { id: 'websites', label: 'Websites & Apps', emoji: '🌐' },
-  { id: 'data', label: 'Data & Analysis', emoji: '📊' },
-  { id: 'robots', label: 'Robots & Hardware', emoji: '🤖' },
-  { id: 'art', label: 'Digital Art & Graphics', emoji: '🎨' },
-  { id: 'music', label: 'Music & Sound', emoji: '🎵' },
-  { id: 'science', label: 'Science & Math', emoji: '🔬' },
-  { id: 'stories', label: 'Stories & Writing', emoji: '📚' },
-];
+// Interests UI removed; backend will accept an empty array.
 
 export const PreferencesSlide: React.FC<PreferencesSlideProps> = ({
   onUserDataUpdate,
@@ -59,9 +50,6 @@ export const PreferencesSlide: React.FC<PreferencesSlideProps> = ({
 }) => {
   const [selectedStyle, setSelectedStyle] = useState<string | null>(
     userData.preferredStyle || null
-  );
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(
-    userData.interests || []
   );
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -77,19 +65,11 @@ export const PreferencesSlide: React.FC<PreferencesSlideProps> = ({
   React.useEffect(() => {
     onUserDataUpdate({
       preferredStyle: selectedStyle as any,
-      interests: selectedInterests,
+      interests: [],
     });
-  }, [selectedStyle, selectedInterests]);
+  }, [selectedStyle]);
 
-  const toggleInterest = (interestId: string) => {
-    setSelectedInterests(prev => {
-      if (prev.includes(interestId)) {
-        return prev.filter(id => id !== interestId);
-      } else {
-        return [...prev, interestId];
-      }
-    });
-  };
+  // Interests selection removed
 
   const getRecommendedStyle = () => {
     const age = userData.age || 12;
@@ -113,9 +93,6 @@ export const PreferencesSlide: React.FC<PreferencesSlideProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Customize Your Experience! ⚙️</Text>
-            <Text style={styles.subtitle}>
-              Let's set up the perfect learning environment for you
-            </Text>
           </View>
 
           {/* Learning Style Section */}
@@ -165,40 +142,6 @@ export const PreferencesSlide: React.FC<PreferencesSlideProps> = ({
             </View>
           </View>
 
-          {/* Interests Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>What interests you?</Text>
-            <Text style={styles.sectionSubtitle}>
-              Select all that apply - we'll use this to create personalized projects
-            </Text>
-            
-            <View style={styles.interestsGrid}>
-              {INTERESTS.map((interest) => (
-                <TouchableOpacity
-                  key={interest.id}
-                  style={[
-                    styles.interestButton,
-                    selectedInterests.includes(interest.id) && styles.selectedInterest,
-                  ]}
-                  onPress={() => toggleInterest(interest.id)}
-                >
-                  <Text style={styles.interestEmoji}>{interest.emoji}</Text>
-                  <Text style={[
-                    styles.interestLabel,
-                    selectedInterests.includes(interest.id) && styles.selectedInterestLabel,
-                  ]}>
-                    {interest.label}
-                  </Text>
-                  {selectedInterests.includes(interest.id) && (
-                    <View style={styles.checkmark}>
-                      <Text style={styles.checkmarkText}>✓</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
           {/* Summary */}
           {canProceed && (
             <Animated.View style={styles.summarySection}>
@@ -211,14 +154,9 @@ export const PreferencesSlide: React.FC<PreferencesSlideProps> = ({
                   <Text style={styles.summaryLabel}>Age:</Text> {userData.age} years old
                 </Text>
                 <Text style={styles.summaryText}>
-                  <Text style={styles.summaryLabel}>Experience:</Text> {userData.experience}
-                </Text>
-                <Text style={styles.summaryText}>
                   <Text style={styles.summaryLabel}>Learning Style:</Text> {selectedStyle}
                 </Text>
-                <Text style={styles.summaryText}>
-                  <Text style={styles.summaryLabel}>Interests:</Text> {selectedInterests.length} selected
-                </Text>
+                {/* Interests removed from summary */}
               </View>
               <Text style={styles.readyText}>
                 Ready to start your Python journey! 🚀

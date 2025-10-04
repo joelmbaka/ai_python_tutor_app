@@ -8,8 +8,8 @@ from typing import List, Optional, Dict, Literal, Any
 from datetime import datetime, date
 from enum import Enum
 
-class CourseworkType(str, Enum):
-    """Different types of coursework offerings"""
+class CourseworkCategory(str, Enum):
+    """Different categories of coursework offerings"""
     FULL_CURRICULUM = "full_curriculum"  # Complete age-appropriate curriculum
     QUICK_START = "quick_start"          # Essential lessons only (5-8 lessons)
     SUMMER_INTENSIVE = "summer_intensive" # 2-week intensive (10-15 lessons)
@@ -22,7 +22,7 @@ class CourseworkBlueprint(BaseModel):
     id: str = Field(description="Unique coursework identifier")
     title: str = Field(description="Coursework title")
     description: str = Field(description="Detailed description")
-    type: CourseworkType = Field(description="Type of coursework")
+    category: CourseworkCategory = Field(description="Category of coursework")
     age_group: Literal["8-10", "11-13", "14-16"] = Field(description="Target age group")
     
     # Lesson organization

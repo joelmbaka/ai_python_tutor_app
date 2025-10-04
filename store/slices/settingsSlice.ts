@@ -84,7 +84,15 @@ export const settingsSlice = createSlice({
     
     resetToDefaults: (state, action: PayloadAction<keyof SettingsState>) => {
       const section = action.payload;
-      state[section] = initialState[section];
+      if (section === 'app') {
+        state.app = initialState.app;
+      } else if (section === 'learning') {
+        state.learning = initialState.learning;
+      } else if (section === 'accessibility') {
+        state.accessibility = initialState.accessibility;
+      } else if (section === 'privacy') {
+        state.privacy = initialState.privacy;
+      }
     },
   },
 });

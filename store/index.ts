@@ -6,12 +6,13 @@ import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, R
 import progressReducer from './slices/progressSlice';
 import settingsReducer from './slices/settingsSlice';
 import userReducer from './slices/userSlice';
+import coinsReducer from './slices/coinsSlice';
 
 // Persist configuration
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['user', 'progress', 'settings'], // Only persist these slices
+  whitelist: ['user', 'progress', 'settings', 'coins'], // Only persist these slices
   version: 1,
 };
 
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   progress: progressReducer,
   settings: settingsReducer,
+  coins: coinsReducer,
 });
 
 // Persisted reducer

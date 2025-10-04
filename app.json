@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "AI Python Tutor",
+    "name": "PythonKids",
     "slug": "ai-python-tutor",
-    "version": "1.0.0",
+    "version": "4.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#1a1a2e"
     },
@@ -16,7 +16,12 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aipythontutor.app"
+      "bundleIdentifier": "com.aipythontutor.app",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -31,7 +36,28 @@
     },
     "scheme": "ai-python-tutor",
     "plugins": [
-      "expo-router"
-    ]
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "API_BASE_URL": "http://192.168.100.11:8083",
+      "eas": {
+        "projectId": "c51364cd-450a-40bb-92c9-15c2989231f8"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c51364cd-450a-40bb-92c9-15c2989231f8"
+    }
   }
 }
